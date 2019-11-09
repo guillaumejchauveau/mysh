@@ -42,12 +42,6 @@ struct command *createCommand() {
   return cmd;
 }
 
-void destroyCommand(struct command *cmd) {
-  closeFileDescriptor(cmd->fd0);
-  closeFileDescriptor(cmd->fd1);
-  free(cmd);
-}
-
 pid_t executeCommand(const struct command *cmd) {
   pid_t fPid = fork();
   if (fPid == 0) {
@@ -135,10 +129,14 @@ int main() {
   command2->args = args2;
   TAILQ_INSERT_TAIL(&commands, command2, commands);
 
-  //pipeCommands(command, command2);
+  pipeCommands(command, command2);
 
   for (command = commands.tqh_first; command != NULL; command = command->commands.tqe_next) {
     executeCommand(command);
+  }
+  for (command = commands.tqh_first; command != NULL; command = command->commands.tqe_next) {
+    closeFileDescriptor(command->fd0);
+    closeFileDescriptor(command->fd1);
   }
 
   int commandStatus;
@@ -154,7 +152,6 @@ int main() {
   while (commands.tqh_first != NULL) {
     command = commands.tqh_first;
     TAILQ_REMOVE(&commands, command, commands);
-    fprintf(stderr, "%s\n", command->path);
-    destroyCommand(command);
+    free(command);
   }
 }
