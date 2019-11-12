@@ -37,6 +37,6 @@ void resetCurrentInstruction() {
   while (current_instruction.tqh_first != NULL) {
     cmd = current_instruction.tqh_first;
     TAILQ_REMOVE(&current_instruction, cmd, instruction);
-    free(cmd);
+    destroyCommand(cmd);
   }
 }

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <error.h>
+#include <err.h>
 
 #define OUTPUT_FILE_PERMS S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 
