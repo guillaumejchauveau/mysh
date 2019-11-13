@@ -1,0 +1,36 @@
+name: CI
+
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - run: cmake -G "Unix Makefiles" ./ && make
+      - uses: actions/upload-artifact@v1
+        with:
+          name: build
+          path: MyShell
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      MYSH: /home/runner/work/uk-nswi015-project/uk-nswi015-project/build/MyShell
+      STEF: /home/runner/work/uk-nswi015-project/stef/stef.sh
+      RUN_TEST_PATH: /home/runner/work/uk-nswi015-project/labs/final-assignment-tests/shell/
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/checkout@v1
+        with:
+          repository: devnull-cz/stef
+          ref: master
+      - uses: actions/checkout@v1
+        with:
+          repository: devnull-cz/unix-linux-prog-in-c-labs
+          ref: master
+          path: labs
+      - uses: actions/download-artifact@v1
+        with:
+          name: build
+      - run: chmod +x $MYSH || /bin/true; chmod +x $STEF; chmod +x $RUN_TEST_PATH;
+      - run: echo '' > $RUN_TEST_PATH/test-config; cd $RUN_TEST_PATH && ./run-tests.sh
