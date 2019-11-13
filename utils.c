@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <unistd.h>
+#include <string.h>
 
 void closeFileDescriptor(int fd) {
   if (fd != STDIN_FILENO && fd != STDOUT_FILENO && fd != STDERR_FILENO) {
@@ -22,4 +23,19 @@ char *gnu_getcwd() {
       return 0;
     size *= 2;
   }
+}
+
+void *allocError() {
+  error(-1, errno, "Memory allocation failed");
+  return NULL;
+}
+
+char *cpyStr(const char *arg) {
+  size_t arg_l = strlen(arg) + 1;
+  char *saved_arg = malloc(arg_l * sizeof(char));
+  if (saved_arg == NULL) {
+    return allocError();
+  }
+  strcpy(saved_arg, arg);
+  return saved_arg;
 }

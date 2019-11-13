@@ -6,6 +6,9 @@
 #include "instructionParser.h"
 #include "internalCommands.h"
 
+// TODO: cat <etc/passwd
+// TODO: cat <etc/passwd | grep>lol /bin/false
+
 void handler(int signum) {
   fprintf(stderr, "Signal %d\n", signum);
 }
@@ -20,25 +23,30 @@ int computeInstructionStatus(const int status) {
 int main() {
   program_invocation_name = "mysh";
   initCurrentInstruction();
+  initPipeEndDescriptorRegistry();
   int lastInstructionStatus = 0;
   signal(SIGINT, handler);
-
-  struct command *cmd, *command2;
+/*
+  struct command *cmd, *command2, *cmd3;
 
   cmd = createCommand();
-  setCommandPath(cmd, "cat");
+  setCommandPath(cmd, "echo");
+  addCommandArg(cmd, "lol");
   addCommandToCurrentInstruction(cmd);
-  redirectCommandInput(cmd, "/etc/passwd");
 
   command2 = createCommand();
-  setCommandPath(command2, "grep");
-  addCommandArg(command2, "/bin/false");
+  setCommandPath(command2, "cat");
   addCommandToCurrentInstruction(command2);
-  redirectCommandOutput(command2, "lol");
 
   pipeCommands(cmd, command2);
 
-  //parseInstruction("cat /etc/passwd");
+  cmd3 = createCommand();
+  setCommandPath(cmd3, "cat");
+  addCommandToCurrentInstruction(cmd3);
+
+  pipeCommands(command2, cmd3);*/
+
+  fprintf(stderr, "'%s'\n", parseInstruction("echo lol | cat | cat"));
   lastInstructionStatus = computeInstructionStatus(executeCurrentInstruction());
   resetCurrentInstruction();
   return lastInstructionStatus;

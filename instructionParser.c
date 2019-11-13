@@ -48,12 +48,15 @@ void saveToken(char *token, enum State *state, struct command *cmd) {
       redirectCommandOutputAppend(cmd, token);
       break;
   }
-  *state = COMMAND_ARG;
+  if (cmd->path == NULL) {
+    *state = COMMAND_PATH;
+  } else {
+    *state = COMMAND_ARG;
+  }
   memset(token, '\0', sizeof(char) * 50); // TODO
 }
 
 int saveCommand(struct command *cmd, struct command *pipe_cmd) {
-  addCommandToCurrentInstruction(cmd);
   if (cmd->path == NULL) { // Empty command.
     if (pipe_cmd == NULL) { // No previous command, empty instruction.
       return 0;
@@ -63,6 +66,7 @@ int saveCommand(struct command *cmd, struct command *pipe_cmd) {
   if (pipe_cmd != NULL) {
     pipeCommands(pipe_cmd, cmd);
   }
+  addCommandToCurrentInstruction(cmd);
   return 1;
 }
 
@@ -78,10 +82,10 @@ char *parseInstruction(char *input) {
   while (1) {
     switch (*input) {
       case '>': // Output redirection.
+        saveToken(token, &state, cmd);
         if (state > 1) { // Normal token expected for previous instruction.
           return syntaxError(*input);
         }
-        saveToken(token, &state, cmd);
         state = OUTPUT_REDIRECT;
         if (*(input + 1) == '>') { // Append mode.
           state = OUTPUT_A_REDIRECT;
@@ -89,17 +93,17 @@ char *parseInstruction(char *input) {
         }
         break;
       case '<': // Input redirection.
+        saveToken(token, &state, cmd);
         if (state > 1) { // Normal token expected for previous instruction.
           return syntaxError(*input);
         }
-        saveToken(token, &state, cmd);
         state = INPUT_REDIRECT;
         break;
       case '|':
+        saveToken(token, &state, cmd);
         if (state > 1) { // Normal token expected for previous instruction.
           return syntaxError(*input);
         }
-        saveToken(token, &state, cmd);
 
         if (saveCommand(cmd, pipe_cmd) != 1) { // A previous command is expected.
           return syntaxError(*input);
@@ -129,7 +133,7 @@ char *parseInstruction(char *input) {
             }
             return input + 1;
           }
-          continue;
+          break;
         }
         if (strchr(RESERVED_KEYWORDS, *input)) {
           return syntaxError(*input);

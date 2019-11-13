@@ -1,21 +1,26 @@
 #include <fcntl.h>
-#include <string.h>
 #include "utils.h"
 #include "command.h"
 
-void *allocError() {
-  error(-1, errno, "Memory allocation failed");
-  return NULL;
+struct pipeEndDescriptor {
+  TAILQ_ENTRY(pipeEndDescriptor) pipeEndDescriptors;
+  int fd;
+};
+
+TAILQ_HEAD(tailhead, pipeEndDescriptor) registered_pipe_end_descriptors;
+
+void initPipeEndDescriptorRegistry() {
+  TAILQ_INIT(&registered_pipe_end_descriptors);
 }
 
-char *cpyStr(const char *arg) {
-  size_t arg_l = strlen(arg) + 1;
-  char *saved_arg = malloc(arg_l * sizeof(char));
-  if (saved_arg == NULL) {
-    return allocError();
+void registerPipeEndDescriptor(int fd) {
+  struct pipeEndDescriptor *ped = calloc(1, sizeof(struct pipeEndDescriptor));
+  if (ped == NULL) {
+    allocError();
+    return;
   }
-  strcpy(saved_arg, arg);
-  return saved_arg;
+  ped->fd = fd;
+  TAILQ_INSERT_TAIL(&registered_pipe_end_descriptors, ped, pipeEndDescriptors);
 }
 
 struct command *createCommand() {
@@ -33,8 +38,6 @@ struct command *createCommand() {
 
   cmd->fd0 = STDIN_FILENO;
   cmd->fd1 = STDOUT_FILENO;
-  cmd->input_pipe_write_d = -1;
-  cmd->output_pipe_read_d = -1;
   return cmd;
 }
 
@@ -83,8 +86,8 @@ void pipeCommands(struct command *cmd1, struct command *cmd2) {
   if (cmd2->fd0 == STDIN_FILENO) {
     cmd2->fd0 = pipe_fd[0];
   }
-  cmd1->output_pipe_read_d = pipe_fd[0];
-  cmd2->input_pipe_write_d = pipe_fd[1];
+  registerPipeEndDescriptor(pipe_fd[0]);
+  registerPipeEndDescriptor(pipe_fd[1]);
 }
 
 void redirectCommandInput(struct command *cmd, const char *path) {
@@ -117,17 +120,38 @@ void redirectCommandOutputAppend(struct command *cmd, const char *path) {
   cmd->fd1 = fd;
 }
 
+void closeAllPipes() {
+  struct pipeEndDescriptor *ped;
+  while (registered_pipe_end_descriptors.tqh_first != NULL) {
+    ped = registered_pipe_end_descriptors.tqh_first;
+    TAILQ_REMOVE(&registered_pipe_end_descriptors, ped, pipeEndDescriptors);
+    closeFileDescriptor(ped->fd);
+    free(ped);
+  }
+}
+
+void closeUnrelatedPipes(const struct command *cmd) {
+  struct pipeEndDescriptor *ped;
+  struct pipeEndDescriptor *next = registered_pipe_end_descriptors.tqh_first;
+  while (next != NULL) {
+    if (next->fd != cmd->fd0 && next->fd != cmd->fd1) {
+      ped = next;
+      TAILQ_REMOVE(&registered_pipe_end_descriptors, ped, pipeEndDescriptors);
+      closeFileDescriptor(ped->fd);
+      free(ped);
+      next = registered_pipe_end_descriptors.tqh_first;
+    } else {
+      next = next->pipeEndDescriptors.tqe_next;
+    }
+  }
+}
+
 pid_t executeCommand(const struct command *cmd) {
   pid_t fPid = fork();
   if (fPid == 0) {
     dup2(cmd->fd0, STDIN_FILENO);
     dup2(cmd->fd1, STDOUT_FILENO);
-    if (cmd->input_pipe_write_d != -1) {
-      closeFileDescriptor(cmd->input_pipe_write_d);
-    }
-    if (cmd->output_pipe_read_d != -1) {
-      closeFileDescriptor(cmd->output_pipe_read_d);
-    }
+    closeUnrelatedPipes(cmd);
     if (execvp(cmd->path, cmd->args) < 0) {
       if (errno == ENOENT) {
         error(127, errno, "%s", cmd->path);

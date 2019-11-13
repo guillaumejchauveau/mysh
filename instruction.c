@@ -17,10 +17,7 @@ int executeCurrentInstruction() {
   for (cmd = current_instruction.tqh_first; cmd != NULL; cmd = cmd->instruction.tqe_next) {
     executeCommand(cmd);
   }
-  for (cmd = current_instruction.tqh_first; cmd != NULL; cmd = cmd->instruction.tqe_next) {
-    closeFileDescriptor(cmd->fd0);
-    closeFileDescriptor(cmd->fd1);
-  }
+  closeAllPipes();
 
   int commandStatus;
   while (wait(&commandStatus) != -1) {

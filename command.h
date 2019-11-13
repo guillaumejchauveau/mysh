@@ -4,12 +4,12 @@
 #include <sys/queue.h>
 #include <unistd.h>
 
+void initPipeEndDescriptorRegistry();
+void closeAllPipes();
 struct command {
   TAILQ_ENTRY(command) instruction;
   int fd0;
   int fd1;
-  int input_pipe_write_d;
-  int output_pipe_read_d;
   char *path;
   char **args;
 };
