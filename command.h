@@ -2,7 +2,6 @@
 #define MYSHELL__COMMAND_H_
 
 #include <sys/queue.h>
-#include <unistd.h>
 
 void initPipeEndDescriptorRegistry();
 void closeAllPipes();

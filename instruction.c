@@ -1,6 +1,8 @@
-#include "instruction.h"
-#include "utils.h"
+#include <sys/queue.h>
 #include <sys/wait.h>
+#include "utils.h"
+#include "internalCommands.h"
+#include "instruction.h"
 
 TAILQ_HEAD(tailhead, command) current_instruction;
 
@@ -14,16 +16,27 @@ void addCommandToCurrentInstruction(struct command *cmd) {
 
 int executeCurrentInstruction() {
   struct command *cmd;
+  bool doExit = false;
   for (cmd = current_instruction.tqh_first; cmd != NULL; cmd = cmd->instruction.tqe_next) {
-    executeCommand(cmd);
+    if (strcmp(cmd->path, "cd") == 0) {
+      changeWorkingDirectory(cmd->args[1]);
+    } else if (strcmp(cmd->path, "exit") == 0) {
+      doExit = true;
+      break;
+    } else {
+      executeCommand(cmd);
+    }
   }
   closeAllPipes();
 
-  int commandStatus;
+  int commandStatus = 0;
   while (wait(&commandStatus) != -1) {
   }
   if (errno != ECHILD) {
-    error(-1, errno, "Wait failed");
+    error(-1, errno, "wait failed");
+  }
+  if (doExit) {
+    exitShell(commandStatus);
   }
 
   return commandStatus;

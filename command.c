@@ -77,7 +77,7 @@ void addCommandArg(struct command *cmd, const char *arg) {
 void pipeCommands(struct command *cmd1, struct command *cmd2) {
   int pipe_fd[2];
   if (pipe(pipe_fd) < 0) {
-    error(-1, errno, "Pipe creation failed");
+    error(-1, errno, "pipe creation failed");
   }
   // Do not pipe if redirected.
   if (cmd1->fd1 == STDOUT_FILENO) {
@@ -156,11 +156,11 @@ pid_t executeCommand(const struct command *cmd) {
       if (errno == ENOENT) {
         error(127, errno, "%s", cmd->path);
       } else {
-        error(-1, errno, "Execution failed");
+        error(-1, errno, "execution failed");
       }
     }
   } else if (fPid < 0) {
-    error(-1, errno, "Fork failed");
+    error(-1, errno, "fork failed");
   }
   return fPid;
 }

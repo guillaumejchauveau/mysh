@@ -1,16 +1,33 @@
 #include <stdio.h>
 #include <signal.h>
+#include <readline/readline.h>
 
 #include "utils.h"
 #include "instruction.h"
 #include "instructionParser.h"
 #include "internalCommands.h"
 
-// TODO: cat <etc/passwd
-// TODO: cat <etc/passwd | grep>lol /bin/false
+// TODO: Check C style.
+// TODO: Readline history.
+// TODO: Replace fprintf.
+// TODO: Make ';<SPACE>;' illegal.
+// TODO: Support '-c "line"' option.
+// TODO: Support non-interactive mode.
+// TODO: Dynamic instruction parser token size.
+// TODO: Fix 'cat <etc/passwd'
+// TODO: Fix 'cat <etc/passwd | grep>lol /bin/false'
 
-void handler(int signum) {
-  fprintf(stderr, "Signal %d\n", signum);
+bool prompting = false;
+
+void sigintHandler() {
+  if (prompting) {
+    fprintf(stderr, "\n");
+    rl_on_new_line();
+    rl_replace_line("", 0);
+    rl_redisplay();
+  } else {
+    fprintf(stderr, "Killed by signal %d.\n", SIGINT);
+  }
 }
 
 int computeInstructionStatus(const int status) {
@@ -20,34 +37,41 @@ int computeInstructionStatus(const int status) {
   return WEXITSTATUS(status);
 }
 
+int executeLine(char *line, int lineNmb) {
+  int status = 0, charCount;
+  do {
+    charCount = parseInstruction(line, lineNmb);
+    if (charCount < 0) {
+      return 1;
+    }
+    line += charCount;
+    status = computeInstructionStatus(executeCurrentInstruction());
+  } while (*line);
+  resetCurrentInstruction();
+  return status;
+}
+
+char *generatePrompt() {
+  return concatStr(3, "mysh:", getcwd(NULL, 0), "$ ");
+}
+
 int main() {
   program_invocation_name = "mysh";
   initCurrentInstruction();
   initPipeEndDescriptorRegistry();
-  int lastInstructionStatus = 0;
-  signal(SIGINT, handler);
-/*
-  struct command *cmd, *command2, *cmd3;
+  int status = 0;
+  signal(SIGINT, sigintHandler);
 
-  cmd = createCommand();
-  setCommandPath(cmd, "echo");
-  addCommandArg(cmd, "lol");
-  addCommandToCurrentInstruction(cmd);
+  char *line, *prompt = generatePrompt();
+  prompting = true;
+  while ((line = readline(prompt))) {
+    prompting = false;
+    free(prompt);
+    status = executeLine(line, 1);
+    prompting = true;
+    prompt = generatePrompt();
+  }
 
-  command2 = createCommand();
-  setCommandPath(command2, "cat");
-  addCommandToCurrentInstruction(command2);
-
-  pipeCommands(cmd, command2);
-
-  cmd3 = createCommand();
-  setCommandPath(cmd3, "cat");
-  addCommandToCurrentInstruction(cmd3);
-
-  pipeCommands(command2, cmd3);*/
-
-  fprintf(stderr, "'%s'\n", parseInstruction("echo lol | cat | cat"));
-  lastInstructionStatus = computeInstructionStatus(executeCurrentInstruction());
-  resetCurrentInstruction();
-  return lastInstructionStatus;
+  free(prompt);
+  exitShell(status);
 }

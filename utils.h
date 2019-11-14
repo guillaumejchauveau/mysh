@@ -1,7 +1,12 @@
 #ifndef MYSHELL__UTILS_H_
 #define MYSHELL__UTILS_H_
 
+#include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
 #include <errno.h>
 #include <error.h>
 #include <err.h>
@@ -10,8 +15,8 @@
 
 extern char *program_invocation_name;
 void closeFileDescriptor(int fd);
-char *gnu_getcwd();
 void *allocError();
-char *cpyStr(const char *arg);
+char *cpyStr(const char *src);
+char *concatStr(int srcCount, ...);
 
 #endif //MYSHELL__UTILS_H_

@@ -3,6 +3,6 @@
 
 #define RESERVED_KEYWORDS "\"\'\\${}()[]*?~&=!"
 
-char *parseInstruction(char *input);
+int parseInstruction(char *input, int lineNmb);
 
 #endif //MYSHELL__INSTRUCTIONPARSER_H_
