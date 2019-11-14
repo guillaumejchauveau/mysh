@@ -10,9 +10,10 @@ enum State {
   OUTPUT_A_REDIRECT = 4
 };
 
-int syntaxError(char token, int lineNmb) {
+int syntaxError(char src, int lineNmb, char *token) {
   resetCurrentInstruction();
-  fprintf(stderr, "error:%d: syntax error near token '%c'\n", lineNmb, token);
+  free(token);
+  fprintf(stderr, "error:%d: syntax error near '%c'\n", lineNmb, src);
   return -1;
 }
 
@@ -50,7 +51,7 @@ void saveToken(char *token, enum State *state, struct command *cmd) {
   } else {
     *state = COMMAND_ARG;
   }
-  memset(token, '\0', sizeof(char) * 50);
+  *token = '\0';
 }
 
 int saveCommand(struct command *cmd, struct command *pipe_cmd) {
@@ -70,8 +71,12 @@ int saveCommand(struct command *cmd, struct command *pipe_cmd) {
 int parseInstruction(char *input, int lineNmb) {
   resetCurrentInstruction();
 
-  char token[50];
-  memset(token, '\0', sizeof(char) * 50);
+  char *token = calloc(1, sizeof(char));
+  if (token == NULL) {
+    allocError();
+    return -1;
+  }
+  *token = '\0';
 
   int charCount = 0;
   enum State state = COMMAND_PATH;
@@ -84,7 +89,7 @@ int parseInstruction(char *input, int lineNmb) {
       case '>': // Output redirection.
         saveToken(token, &state, cmd);
         if (state > 1) { // Normal token expected for previous instruction.
-          return syntaxError(*input, lineNmb);
+          return syntaxError(*input, lineNmb, token);
         }
         state = OUTPUT_REDIRECT;
         if (*(input + 1) == '>') { // Append mode.
@@ -96,18 +101,18 @@ int parseInstruction(char *input, int lineNmb) {
       case '<': // Input redirection.
         saveToken(token, &state, cmd);
         if (state > 1) { // Normal token expected for previous instruction.
-          return syntaxError(*input, lineNmb);
+          return syntaxError(*input, lineNmb, token);
         }
         state = INPUT_REDIRECT;
         break;
       case '|':
         saveToken(token, &state, cmd);
         if (state > 1) { // Normal token expected for previous instruction.
-          return syntaxError(*input, lineNmb);
+          return syntaxError(*input, lineNmb, token);
         }
 
         if (saveCommand(cmd, pipe_cmd) != 1) { // A previous command is expected.
-          return syntaxError(*input, lineNmb);
+          return syntaxError(*input, lineNmb, token);
         }
         pipe_cmd = cmd;
         // Starts next command processing.
@@ -120,8 +125,10 @@ int parseInstruction(char *input, int lineNmb) {
         if (instruction_end || isspace(*input)) {
           saveToken(token, &state, cmd);
           if (instruction_end) {
+            free(token);
+            token = NULL;
             if (saveCommand(cmd, pipe_cmd) < 0) {
-              return syntaxError(*input, lineNmb);
+              return syntaxError(*input, lineNmb, token);
             }
             if (*input == '\0') { // End of user input.
               return charCount;
@@ -130,14 +137,19 @@ int parseInstruction(char *input, int lineNmb) {
               return skipLine(input, charCount);
             }
             if (*input == ';' && *(input + 1) == ';') { // Illegal ';;'.
-              return syntaxError(*input, lineNmb);
+              return syntaxError(*input, lineNmb, token);
             }
             return charCount + 1;
           }
           break;
         }
         if (strchr(RESERVED_KEYWORDS, *input)) {
-          return syntaxError(*input, lineNmb);
+          return syntaxError(*input, lineNmb, token);
+        }
+        token = realloc(token, (strlen(token) + 2) * sizeof(char));
+        if (token == NULL) {
+          allocError();
+          return -1;
         }
         strncat(token, input, 1);
     }

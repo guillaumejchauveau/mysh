@@ -13,7 +13,6 @@
 // TODO: Make ';<SPACE>;' illegal.
 // TODO: Support '-c "line"' option.
 // TODO: Support non-interactive mode.
-// TODO: Dynamic instruction parser token size.
 // TODO: Fix 'cat <etc/passwd'
 // TODO: Fix 'cat <etc/passwd | grep>lol /bin/false'
 

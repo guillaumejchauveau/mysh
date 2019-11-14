@@ -20,7 +20,7 @@ jobs:
       STEF: /home/runner/work/uk-nswi015-project/stef/stef.sh
       RUN_TEST_PATH: /home/runner/work/uk-nswi015-project/labs/final-assignment-tests/shell/
     steps:
-      - run: sudo apt install libreadline-dev
+      #- run: sudo apt install libreadline-dev
       - uses: actions/checkout@v1
       - uses: actions/checkout@v1
         with:
