@@ -71,7 +71,8 @@ int saveCommand(struct command *cmd, struct command *pipe_cmd) {
 int parseInstruction(char *input, int lineNmb) {
   resetCurrentInstruction();
 
-  char *token = calloc(1, sizeof(char));
+  size_t token_buffer_l = 4;
+  char *token = calloc(token_buffer_l, sizeof(char));
   if (token == NULL) {
     allocError();
     return -1;
@@ -146,12 +147,7 @@ int parseInstruction(char *input, int lineNmb) {
         if (strchr(RESERVED_KEYWORDS, *input)) {
           return syntaxError(*input, lineNmb, token);
         }
-        token = realloc(token, (strlen(token) + 2) * sizeof(char));
-        if (token == NULL) {
-          allocError();
-          return -1;
-        }
-        strncat(token, input, 1);
+        token_buffer_l = addToStrBuffer(*input, &token, token_buffer_l);
     }
     input++;
     charCount++;

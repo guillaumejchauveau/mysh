@@ -2,6 +2,7 @@
 #define MYSHELL__UTILS_H_
 
 #include <ctype.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -18,5 +19,6 @@ void closeFileDescriptor(int fd);
 void *allocError();
 char *cpyStr(const char *src);
 char *concatStr(int srcCount, ...);
+int addToStrBuffer(char c, char **buffer, size_t buffer_l);
 
 #endif //MYSHELL__UTILS_H_

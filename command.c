@@ -1,4 +1,3 @@
-#include <fcntl.h>
 #include "utils.h"
 #include "command.h"
 

@@ -47,3 +47,16 @@ char *concatStr(int srcCount, ...) {
 
   return dest;
 }
+
+int addToStrBuffer(char c, char **buffer, size_t buffer_l) {
+  if (strlen(*buffer) + 2 > buffer_l) {
+    buffer_l *= 2;
+    *buffer = realloc(*buffer, buffer_l * sizeof(char));
+    if (*buffer == NULL) {
+      allocError();
+      return -1;
+    }
+  }
+  strncat(*buffer, &c, 1);
+  return buffer_l;
+}
