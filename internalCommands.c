@@ -21,6 +21,6 @@ void changeWorkingDirectory(const char *path) {
 void exitShell(int status) {
   resetCurrentInstruction();
   closeAllPipes();
-  fprintf(stderr, "\n");
+  //fprintf(stderr, "\n");
   exit(status);
 }

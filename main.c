@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
         if (bytes_read < 0) {
           error(-1, errno, "%s", argv[1]);
         }
-        addToStrBuffer(c, &script, script_buffer_l);
+        script_buffer_l = addToStrBuffer(c, &script, script_buffer_l);
         if (c == '\n' || bytes_read == 0) {
           status = executeScript(script, line_number);
           if (status != 0) {
