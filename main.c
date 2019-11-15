@@ -43,6 +43,9 @@ int executeScript(char *script, int lineNmb) {
     }
     script += charCount;
     status = computeInstructionStatus(executeCurrentInstruction());
+    if (status != 0) {
+      break;
+    }
   } while (*script);
   resetCurrentInstruction();
   return status;

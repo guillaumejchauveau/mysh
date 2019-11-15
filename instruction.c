@@ -19,7 +19,13 @@ int executeCurrentInstruction() {
   bool doExit = false;
   for (cmd = current_instruction.tqh_first; cmd != NULL; cmd = cmd->instruction.tqe_next) {
     if (strcmp(cmd->path, "cd") == 0) {
-      changeWorkingDirectory(cmd->args[1]);
+      if (cmd->args[1] != NULL && cmd->args[2]) {
+        fprintf(stderr, "cd: too many arguments\n");
+        return 1;
+      }
+      if (changeWorkingDirectory(cmd->args[1]) < 0) {
+        return 1;
+      }
     } else if (strcmp(cmd->path, "exit") == 0) {
       doExit = true;
       break;

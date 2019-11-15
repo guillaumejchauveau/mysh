@@ -2,7 +2,7 @@
 #include "instruction.h"
 #include "internalCommands.h"
 
-void changeWorkingDirectory(const char *path) {
+int changeWorkingDirectory(const char *path) {
   char *oldPWD = getcwd(NULL, 0);
   if (!path) {
     path = getenv("HOME");
@@ -11,16 +11,17 @@ void changeWorkingDirectory(const char *path) {
     fprintf(stderr, "%s\n", path);
   }
   if (chdir(path) < 0) {
-    error(0, errno, "cd");
+    error(0, errno, "cd: %s", path);
+    return -1;
   }
   setenv("PWD", path, 1);
   setenv("OLDPWD", oldPWD, 1);
   free(oldPWD);
+  return 0;
 }
 
 void exitShell(int status) {
   resetCurrentInstruction();
   closeAllPipes();
-  //fprintf(stderr, "\n");
   exit(status);
 }
