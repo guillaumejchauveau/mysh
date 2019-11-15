@@ -11,9 +11,16 @@ enum State {
 };
 
 int syntaxError(char src, int lineNmb, char *token) {
+  fprintf(stderr, "error:%d: syntax error near '%c'\n", lineNmb, src);
   resetCurrentInstruction();
   free(token);
-  fprintf(stderr, "error:%d: syntax error near '%c'\n", lineNmb, src);
+  return -1;
+}
+
+int tokenError(char *token, int lineNmb) {
+  fprintf(stderr, "error:%d: invalid token '%s': %s\n", lineNmb, token, strerror(errno));
+  resetCurrentInstruction();
+  free(token);
   return -1;
 }
 
@@ -25,9 +32,9 @@ int skipLine(char *input, int charCount) {
   return charCount;
 }
 
-void saveToken(char *token, enum State *state, struct command *cmd) {
+int saveToken(char *token, enum State *state, struct command *cmd) {
   if (*token == '\0') {
-    return;
+    return 0;
   }
   switch (*state) {
     case COMMAND_PATH:
@@ -37,13 +44,21 @@ void saveToken(char *token, enum State *state, struct command *cmd) {
       addCommandArg(cmd, token);
       break;
     case INPUT_REDIRECT:
-      redirectCommandInput(cmd, token);
+      if (redirectCommandInput(cmd, token) < 0) {
+        return -1;
+      }
       break;
     case OUTPUT_REDIRECT:
-      redirectCommandOutput(cmd, token);
+      if (redirectCommandOutput(cmd, token) < 0) {
+        error(0, errno, "%s", token);
+        return -1;
+      }
       break;
     case OUTPUT_A_REDIRECT:
-      redirectCommandOutputAppend(cmd, token);
+      if (redirectCommandOutputAppend(cmd, token) < 0) {
+        error(0, errno, "%s", token);
+        return -1;
+      }
       break;
   }
   if (cmd->path == NULL) {
@@ -52,6 +67,7 @@ void saveToken(char *token, enum State *state, struct command *cmd) {
     *state = COMMAND_ARG;
   }
   *token = '\0';
+  return 1;
 }
 
 int saveCommand(struct command *cmd, struct command *pipe_cmd) {
@@ -88,7 +104,9 @@ int parseInstruction(char *input, int lineNmb) {
   while (1) {
     switch (*input) {
       case '>': // Output redirection.
-        saveToken(token, &state, cmd);
+        if (saveToken(token, &state, cmd) < 0) {
+          return tokenError(token, lineNmb);
+        }
         if (state > 1) { // Normal token expected for previous instruction.
           return syntaxError(*input, lineNmb, token);
         }
@@ -100,14 +118,18 @@ int parseInstruction(char *input, int lineNmb) {
         }
         break;
       case '<': // Input redirection.
-        saveToken(token, &state, cmd);
+        if (saveToken(token, &state, cmd) < 0) {
+          return tokenError(token, lineNmb);
+        }
         if (state > 1) { // Normal token expected for previous instruction.
           return syntaxError(*input, lineNmb, token);
         }
         state = INPUT_REDIRECT;
         break;
       case '|':
-        saveToken(token, &state, cmd);
+        if (saveToken(token, &state, cmd) < 0) {
+          return tokenError(token, lineNmb);
+        }
         if (state > 1) { // Normal token expected for previous instruction.
           return syntaxError(*input, lineNmb, token);
         }
@@ -124,7 +146,9 @@ int parseInstruction(char *input, int lineNmb) {
         instruction_end = strchr("#;\n\0", *input) != NULL;
 
         if (instruction_end || isspace(*input)) {
-          saveToken(token, &state, cmd);
+          if (saveToken(token, &state, cmd) < 0) {
+            return tokenError(token, lineNmb);
+          }
           if (instruction_end) {
             free(token);
             token = NULL;
@@ -137,8 +161,15 @@ int parseInstruction(char *input, int lineNmb) {
             if (*input == '#') { // Comment.
               return skipLine(input, charCount);
             }
-            if (*input == ';' && *(input + 1) == ';') { // Illegal ';;'.
-              return syntaxError(*input, lineNmb, token);
+            if (*input == ';') { // Illegal ';;'.
+              int i = 1;
+              while (isspace(input[i]) && input[i] != '\n' && input[i] != '\0') {
+                i++;
+              }
+              if (input[i] == ';') {
+                return syntaxError(*input, lineNmb, token);
+              }
+              return charCount + i;
             }
             return charCount + 1;
           }

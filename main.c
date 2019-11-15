@@ -9,10 +9,6 @@
 
 // TODO: Check C style.
 // TODO: Replace fprintf.
-// TODO: Make ';<SPACE>;' illegal.
-// TODO: Fix 'cat <etc/passwd'
-// TODO: Fix 'cat <etc/passwd | grep>lol /bin/false'
-// TODO: Add usage message.
 
 bool prompting = false;
 
@@ -62,7 +58,9 @@ enum mode {
 };
 
 void usage() {
-  fprintf(stderr, "Usage: \n");
+  fprintf(stderr, "Usage:   mysh\n");
+  fprintf(stderr, "         mysh script-file\n");
+  fprintf(stderr, "         mysh -c instruction\n");
   exit(1);
 }
 

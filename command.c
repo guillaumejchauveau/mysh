@@ -89,34 +89,34 @@ void pipeCommands(struct command *cmd1, struct command *cmd2) {
   registerPipeEndDescriptor(pipe_fd[1]);
 }
 
-void redirectCommandInput(struct command *cmd, const char *path) {
+int redirectCommandInput(struct command *cmd, const char *path) {
   int fd = open(path, O_RDONLY);
   if (fd < 0) {
-    error(0, errno, "%s", path);
-    return;
+    return -1;
   }
   closeFileDescriptor(cmd->fd0);
   cmd->fd0 = fd;
+  return 0;
 }
 
-void redirectCommandOutput(struct command *cmd, const char *path) {
+int redirectCommandOutput(struct command *cmd, const char *path) {
   int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, OUTPUT_FILE_PERMS);
   if (fd < 0) {
-    error(0, errno, "%s", path);
-    return;
+    return -1;
   }
   closeFileDescriptor(cmd->fd1);
   cmd->fd1 = fd;
+  return 0;
 }
 
-void redirectCommandOutputAppend(struct command *cmd, const char *path) {
+int redirectCommandOutputAppend(struct command *cmd, const char *path) {
   int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, OUTPUT_FILE_PERMS);
   if (fd < 0) {
-    error(0, errno, "%s", path);
-    return;
+    return -1;
   }
   closeFileDescriptor(cmd->fd1);
   cmd->fd1 = fd;
+  return 0;
 }
 
 void closeAllPipes() {
