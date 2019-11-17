@@ -1,17 +1,22 @@
 #include "utils.h"
 #include <stdarg.h>
 
+void *allocError() {
+  error(-1, errno, "memory allocation failed");
+  return NULL;
+}
+
+void mPrint(char *str) {
+  size_t __l = strlen(str);
+  write(STDERR_FILENO, str, __l * sizeof(char));
+}
+
 void closeFileDescriptor(int fd) {
   if (fd != STDIN_FILENO && fd != STDOUT_FILENO && fd != STDERR_FILENO) {
     if (close(fd) < 0) {
       error(-1, errno, "file descriptor closing failed");
     }
   }
-}
-
-void *allocError() {
-  error(-1, errno, "memory allocation failed");
-  return NULL;
 }
 
 char *cpyStr(const char *src) {

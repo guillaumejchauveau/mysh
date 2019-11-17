@@ -15,6 +15,7 @@
 #define OUTPUT_FILE_PERMS S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 
 extern char *program_invocation_name;
+void mPrint(char *str);
 void closeFileDescriptor(int fd);
 void *allocError();
 char *cpyStr(const char *src);

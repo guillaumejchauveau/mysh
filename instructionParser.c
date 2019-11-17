@@ -11,14 +11,22 @@ enum State {
 };
 
 int syntaxError(char src, int lineNmb, char *token) {
-  fprintf(stderr, "error:%d: syntax error near '%c'\n", lineNmb, src);
+  char _lineNmb[10];
+  sprintf(_lineNmb, "%d", lineNmb);
+  char *str = concatStr(5, "error:", _lineNmb, ": syntax error near '", &src, "'\n");
+  mPrint(str);
+  free(str);
   resetCurrentInstruction();
   free(token);
   return -1;
 }
 
 int tokenError(char *token, int lineNmb) {
-  fprintf(stderr, "error:%d: invalid token '%s': %s\n", lineNmb, token, strerror(errno));
+  char _lineNmb[10];
+  sprintf(_lineNmb, "%d", lineNmb);
+  char *str = concatStr(7, "error:", _lineNmb, ": invalid token '", token, "' : ", strerror(errno), "\n");
+  mPrint(str);
+  free(str);
   resetCurrentInstruction();
   free(token);
   return -1;

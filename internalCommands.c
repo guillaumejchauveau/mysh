@@ -8,7 +8,9 @@ int changeWorkingDirectory(const char *path) {
     path = getenv("HOME");
   } else if (strcmp(path, "-") == 0) {
     path = getenv("OLDPWD");
-    fprintf(stderr, "%s\n", path);
+    char *str = concatStr(2, path, "\n");
+    mPrint(str);
+    free(str);
   }
   if (chdir(path) < 0) {
     error(0, errno, "cd: %s", path);

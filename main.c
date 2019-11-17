@@ -8,18 +8,17 @@
 #include "internalCommands.h"
 
 // TODO: Check C style.
-// TODO: Replace fprintf.
 
 bool prompting = false;
 
 void sigintHandler() {
   if (prompting) {
-    fprintf(stderr, "\n");
+    mPrint("\n");
     rl_on_new_line();
     rl_replace_line("", 0);
     rl_redisplay();
   } else {
-    fprintf(stderr, "Killed by signal %d.\n", SIGINT);
+    mPrint("Killed by signal 2.");
   }
 }
 
@@ -58,9 +57,9 @@ enum mode {
 };
 
 void usage() {
-  fprintf(stderr, "Usage:   mysh\n");
-  fprintf(stderr, "         mysh script-file\n");
-  fprintf(stderr, "         mysh -c instruction\n");
+  mPrint("Usage:   mysh\n");
+  mPrint("         mysh script-file\n");
+  mPrint("         mysh -c instruction\n");
   exit(1);
 }
 

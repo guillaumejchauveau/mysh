@@ -20,7 +20,7 @@ int executeCurrentInstruction() {
   for (cmd = current_instruction.tqh_first; cmd != NULL; cmd = cmd->instruction.tqe_next) {
     if (strcmp(cmd->path, "cd") == 0) {
       if (cmd->args[1] != NULL && cmd->args[2]) {
-        fprintf(stderr, "cd: too many arguments\n");
+        mPrint("cd: too many arguments\n");
         return 1;
       }
       if (changeWorkingDirectory(cmd->args[1]) < 0) {
