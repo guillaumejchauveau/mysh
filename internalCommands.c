@@ -1,6 +1,5 @@
 #include "utils.h"
 #include "instruction.h"
-#include "internalCommands.h"
 
 int changeWorkingDirectory(const char *path) {
   char *oldPWD = getcwd(NULL, 0);
