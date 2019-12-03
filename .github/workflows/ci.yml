@@ -5,18 +5,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt install libreadline-dev
+      - run: sudo apt-get install libreadline-dev
       - uses: actions/checkout@v1
       - run: cmake -G "Unix Makefiles" ./ && make
       - uses: actions/upload-artifact@v1
         with:
           name: build
-          path: MyShell
+          path: src/mysh
   test:
     runs-on: ubuntu-latest
     needs: build
     env:
-      MYSH: /home/runner/work/uk-nswi015-project/uk-nswi015-project/build/MyShell
+      MYSH: /home/runner/work/uk-nswi015-project/uk-nswi015-project/build/mysh
       STEF: /home/runner/work/uk-nswi015-project/stef/stef.sh
       RUN_TEST_PATH: /home/runner/work/uk-nswi015-project/labs/final-assignment-tests/shell/
     steps:
