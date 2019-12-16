@@ -1,7 +1,7 @@
 #include "utils.h"
 
-#include <error.h>
 #include <errno.h>
+#include <error.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -61,6 +61,7 @@ char *concat_string(int src_count, ...) {
 }
 
 size_t add_char_to_buffer(char c, char **buffer, size_t buffer_length) {
+  // Increases buffer size if it is too small.
   if (strlen(*buffer) + 2 > buffer_length) {
     buffer_length *= 2;
     *buffer = realloc(*buffer, buffer_length * sizeof(char));

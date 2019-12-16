@@ -26,4 +26,4 @@ int redirect_command_output(Command *cmd, const char *path);
 int redirect_command_output_append(Command *cmd, const char *path);
 pid_t execute_command(const Command *cmd);
 
-#endif //MYSHELL__COMMAND_H_
+#endif // MYSHELL__COMMAND_H_

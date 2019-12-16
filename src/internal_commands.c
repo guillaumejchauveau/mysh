@@ -1,7 +1,7 @@
 #include "internal_commands.h"
 
-#include <error.h>
 #include <errno.h>
+#include <error.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -15,6 +15,9 @@ int change_working_directory(const char *path) {
     path = getenv("HOME");
   } else if (strcmp(path, "-") == 0) {
     path = getenv("OLDPWD");
+    if (path == NULL) {
+      path = oldPWD;
+    }
     char *str = concat_string(2, path, "\n");
     m_print(str);
     free(str);

@@ -7,14 +7,12 @@
 #include <sys/queue.h>
 #include <sys/wait.h>
 
-#include "utils.h"
 #include "internal_commands.h"
+#include "utils.h"
 
 TAILQ_HEAD(tailhead, command) current_instruction;
 
-void init_current_instruction() {
-  TAILQ_INIT(&current_instruction);
-}
+void init_current_instruction() { TAILQ_INIT(&current_instruction); }
 
 void add_command_to_current_instruction(Command *cmd) {
   TAILQ_INSERT_TAIL(&current_instruction, cmd, instruction);
@@ -23,7 +21,9 @@ void add_command_to_current_instruction(Command *cmd) {
 int execute_current_instruction() {
   Command *cmd;
   bool do_exit = false;
-  for (cmd = current_instruction.tqh_first; cmd != NULL; cmd = cmd->instruction.tqe_next) {
+  for (cmd = current_instruction.tqh_first; cmd != NULL;
+       cmd = cmd->instruction.tqe_next) {
+    // Filters internal commands.
     if (strcmp(cmd->name, "cd") == 0) {
       if (cmd->args[1] != NULL && cmd->args[2]) {
         m_print("cd: too many arguments\n");
@@ -33,6 +33,7 @@ int execute_current_instruction() {
         return 1;
       }
     } else if (strcmp(cmd->name, "exit") == 0) {
+      // Exit only when all previous commands are terminated.
       do_exit = true;
       break;
     } else {

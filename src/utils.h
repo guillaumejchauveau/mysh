@@ -12,4 +12,4 @@ char *copy_string(const char *src);
 char *concat_string(int src_count, ...);
 size_t add_char_to_buffer(char c, char **buffer, size_t buffer_length);
 
-#endif //MYSHELL__UTILS_H_
+#endif // MYSHELL__UTILS_H_

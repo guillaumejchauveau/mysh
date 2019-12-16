@@ -1,22 +1,22 @@
 #include <errno.h>
 #include <error.h>
-#include <readline/readline.h>
 #include <readline/history.h>
-#include <stdbool.h>
+#include <readline/readline.h>
 #include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "internal_commands.h"
 #include "instruction.h"
 #include "instruction_parser.h"
+#include "internal_commands.h"
 #include "utils.h"
-
-// TODO: Check C style.
 
 bool prompting = false;
 
 void sigint_handler() {
+  // Resets readline's input if it is currently prompting the user.
   if (prompting) {
     m_print("\n");
     rl_on_new_line();
@@ -59,11 +59,7 @@ char *generate_prompt() {
 }
 
 typedef enum mode Mode;
-enum mode {
-  MODE_INTERACTIVE,
-  MODE_LINE_INPUT,
-  MODE_FILE_INPUT
-};
+enum mode { MODE_INTERACTIVE, MODE_LINE_INPUT, MODE_FILE_INPUT };
 
 void usage() {
   m_print("Usage:   mysh\n");
@@ -74,18 +70,21 @@ void usage() {
 
 int main(int argc, char **argv) {
   program_invocation_name = "mysh";
+  // Initialises queues.
   init_current_instruction();
   init_ped_registry();
-  signal(SIGINT, (__sighandler_t) sigint_handler);
+
+  signal(SIGINT, (__sighandler_t)sigint_handler);
 
   int status = 0, line_id = 1;
   ssize_t bytes_read;
   size_t script_buffer_length = 100;
   char *script = NULL;
 
+  // Shell mode determination.
   Mode execution_mode = MODE_INTERACTIVE;
   char c;
-  while ((c = (char) getopt(argc, argv, "c:")) != -1) {
+  while ((c = (char)getopt(argc, argv, "c:")) != -1) {
     if (c == 'c') {
       execution_mode = MODE_LINE_INPUT;
       script = optarg;
@@ -108,55 +107,56 @@ int main(int argc, char **argv) {
   char *prompt = NULL;
   int fd;
   switch (execution_mode) {
-    case MODE_INTERACTIVE:
-      prompt = generate_prompt();
-      prompting = true;
-      while ((script = readline(prompt))) {
-        prompting = false;
-        free(prompt);
-        for (char *l = script; *l != '\0'; l++) {
-          if (!isspace(*l)) {
-            add_history(script);
-            break;
-          }
-        }
-        status = execute_script(script, line_id);
-        prompting = true;
-        prompt = generate_prompt();
-      }
+  case MODE_INTERACTIVE:
+    prompt = generate_prompt();
+    prompting = true;
+    while ((script = readline(prompt))) {
+      prompting = false;
       free(prompt);
-      break;
-    case MODE_LINE_INPUT:
-      status = execute_script(script, line_id);
-      break;
-    case MODE_FILE_INPUT:
-      fd = open(argv[1], O_RDONLY);
-      if (fd < 0) {
-        error(1, errno, "%s", argv[1]);
-      }
-      script = calloc(script_buffer_length, sizeof(char));
-      c = '\0';
-      while (1) {
-        bytes_read = read(fd, &c, 1);
-        if (bytes_read < 0) {
-          error(-1, errno, "%s", argv[1]);
-        }
-        script_buffer_length = add_char_to_buffer(c, &script, script_buffer_length);
-        if (c == '\n' || bytes_read == 0) {
-          status = execute_script(script, line_id);
-          if (status != 0) {
-            break;
-          }
-          line_id++;
-          *script = '\0';
-        }
-        if (bytes_read == 0) {
+      for (char *l = script; *l != '\0'; l++) {
+        if (!isspace(*l)) {
+          add_history(script);
           break;
         }
       }
-      close(fd);
-      free(script);
-      break;
+      status = execute_script(script, line_id);
+      prompting = true;
+      prompt = generate_prompt();
+    }
+    free(prompt);
+    break;
+  case MODE_LINE_INPUT:
+    status = execute_script(script, line_id);
+    break;
+  case MODE_FILE_INPUT:
+    fd = open(argv[1], O_RDONLY);
+    if (fd < 0) {
+      error(1, errno, "%s", argv[1]);
+    }
+    script = calloc(script_buffer_length, sizeof(char));
+    c = '\0';
+    while (1) {
+      bytes_read = read(fd, &c, 1);
+      if (bytes_read < 0) {
+        error(-1, errno, "%s", argv[1]);
+      }
+      script_buffer_length =
+          add_char_to_buffer(c, &script, script_buffer_length);
+      if (c == '\n' || bytes_read == 0) {
+        status = execute_script(script, line_id);
+        if (status != 0) {
+          break;
+        }
+        line_id++;
+        *script = '\0';
+      }
+      if (bytes_read == 0) {
+        break;
+      }
+    }
+    close(fd);
+    free(script);
+    break;
   }
   exit_shell(status);
 }

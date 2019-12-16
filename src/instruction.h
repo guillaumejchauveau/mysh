@@ -8,4 +8,4 @@ void add_command_to_current_instruction(Command *cmd);
 int execute_current_instruction();
 void reset_current_instruction();
 
-#endif //MYSHELL__INSTRUCTION_H_
+#endif // MYSHELL__INSTRUCTION_H_
