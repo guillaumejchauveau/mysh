@@ -7,7 +7,8 @@ jobs:
     steps:
       - run: sudo apt-get install libreadline-dev
       - uses: actions/checkout@v1
-      - run: cmake -G "Unix Makefiles" --build cmake-build ./ && make
+      - run: mkdir cmake-build && cd cmake-build && cmake -G "Unix Makefiles" ../
+      - run: make -C cmake-build
       - uses: actions/upload-artifact@v1
         with:
           name: build
