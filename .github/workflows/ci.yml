@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     env:
-      MYSH: /home/runner/work/uk-nswi015-project/uk-nswi015-project/build/src/mysh
-      STEF: /home/runner/work/uk-nswi015-project/stef/stef.sh
-      RUN_TEST_PATH: /home/runner/work/uk-nswi015-project/labs/final-assignment-tests/shell/
+      MYSH: /home/runner/work/mysh/mysh/build/src/mysh
+      STEF: /home/runner/work/mysh/stef/stef.sh
+      RUN_TEST_PATH: /home/runner/work/mysh/labs/final-assignment-tests/shell/
     steps:
       - uses: actions/checkout@v1
       - uses: actions/checkout@v1
@@ -33,8 +33,8 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: build
-      - run: ls /home/runner/work/uk-nswi015-project/uk-nswi015-project/
-      - run: ls /home/runner/work/uk-nswi015-project/uk-nswi015-project/build/
-      - run: ls /home/runner/work/uk-nswi015-project/uk-nswi015-project/build/src/
+      - run: ls /home/runner/work/mysh/mysh/
+      - run: ls /home/runner/work/mysh/mysh/build/
+      - run: ls /home/runner/work/mysh/mysh/build/src/
       - run: chmod +x $MYSH || /bin/true; chmod +x $STEF; chmod +x $RUN_TEST_PATH;
       - run: echo '' > $RUN_TEST_PATH/test-config; cd $RUN_TEST_PATH && ./run-tests.sh
