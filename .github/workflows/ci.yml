@@ -7,11 +7,11 @@ jobs:
     steps:
       - run: sudo apt-get install libreadline-dev
       - uses: actions/checkout@v1
-      - run: cmake -G "Unix Makefiles" ./ && make
+      - run: cmake -G "Unix Makefiles" --build cmake-build ./ && make
       - uses: actions/upload-artifact@v1
         with:
           name: build
-          path: src/mysh
+          path: cmake-build/src/mysh
   test:
     runs-on: ubuntu-latest
     needs: build
