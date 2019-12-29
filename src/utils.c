@@ -10,7 +10,6 @@
 
 void alloc_error() {
   error(-1, errno, "memory allocation failed");
-  exit(-1);
 }
 
 void m_print(char *str) {
@@ -26,15 +25,6 @@ void close_file_descriptor(int fd) {
   }
 }
 
-char *copy_string(const char *src) {
-  char *dest = calloc(strlen(src) + 1, sizeof(char));
-  if (dest == NULL) {
-    alloc_error();
-  }
-  strcpy(dest, src);
-  return dest;
-}
-
 char *concat_string(int src_count, ...) {
   char *dest = calloc(1, sizeof(char)), *src;
   if (dest == NULL) {
@@ -48,12 +38,16 @@ char *concat_string(int src_count, ...) {
 
   for (int i = 0; i < src_count; i++) {
     src = va_arg(ap, char *);
-    dest_length += strlen(src);
+    if (src == NULL) {
+      continue;
+    }
+    size_t src_length = strlen(src);
+    dest_length += src_length;
     dest = realloc(dest, dest_length * sizeof(char));
     if (dest == NULL) {
       alloc_error();
     }
-    strcat(dest, src);
+    strncat(dest, src, src_length);
   }
   va_end(ap);
 

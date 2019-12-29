@@ -75,7 +75,9 @@ int main(int argc, char **argv) {
   init_current_instruction();
   init_ped_registry();
 
-  signal(SIGINT, (__sighandler_t)sigint_handler);
+  struct sigaction sa;
+  sa.sa_handler = sigint_handler;
+  sigaction(SIGINT, &sa, NULL);
 
   int status = 0, line_id = 1;
   ssize_t bytes_read;

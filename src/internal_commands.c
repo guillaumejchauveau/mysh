@@ -11,12 +11,19 @@
 
 int change_working_directory(const char *path) {
   char *oldPWD = getcwd(NULL, 0);
-  if (!path) {
+  if (oldPWD == NULL) {
+    error(-1, errno, "Working directory retrieval failed");
+  }
+  if (path == NULL) {
     path = getenv("HOME");
+    if (path == NULL) {
+      error(0, errno, "cd: cannot go to HOME, variable not set");
+      return -1;
+    }
   } else if (strcmp(path, "-") == 0) {
     path = getenv("OLDPWD");
     if (path == NULL) {
-      path = oldPWD;
+      path = oldPWD; // Do not change.
     }
     char *str = concat_string(2, path, "\n");
     m_print(str);

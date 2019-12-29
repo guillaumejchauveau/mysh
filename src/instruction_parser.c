@@ -12,12 +12,13 @@
 #include "utils.h"
 
 typedef enum state State;
+
 enum state {
-  STATE_COMMAND_PATH = 0,
-  STATE_COMMAND_ARG = 1,
-  STATE_INPUT_REDIRECT = 2,
-  STATE_OUTPUT_REDIRECT = 3,
-  STATE_OUTPUT_A_REDIRECT = 4
+  STATE_COMMAND_PATH,
+  STATE_COMMAND_ARG,
+  STATE_INPUT_REDIRECT,
+  STATE_OUTPUT_REDIRECT,
+  STATE_OUTPUT_A_REDIRECT
 };
 
 int syntax_error(char src, int line_id, char *token) {
@@ -134,7 +135,8 @@ int parse_instruction(char *input, int line_id) {
       if (save_token(token, &state, cmd) < 0) {
         return token_error(token, line_id);
       }
-      if (state > 1) { // Normal token expected for previous instruction.
+      if (state >= STATE_INPUT_REDIRECT) { // Normal token expected for previous
+                                           // instruction.
         return syntax_error(*input, line_id, token);
       }
       state = STATE_OUTPUT_REDIRECT;
@@ -148,7 +150,8 @@ int parse_instruction(char *input, int line_id) {
       if (save_token(token, &state, cmd) < 0) {
         return token_error(token, line_id);
       }
-      if (state > 1) { // Normal token expected for previous instruction.
+      if (state >= STATE_INPUT_REDIRECT) { // Normal token expected for previous
+                                           // instruction.
         return syntax_error(*input, line_id, token);
       }
       state = STATE_INPUT_REDIRECT;
@@ -157,7 +160,8 @@ int parse_instruction(char *input, int line_id) {
       if (save_token(token, &state, cmd) < 0) {
         return token_error(token, line_id);
       }
-      if (state > 1) { // Normal token expected for previous instruction.
+      if (state >= STATE_INPUT_REDIRECT) { // Normal token expected for previous
+                                           // instruction.
         return syntax_error(*input, line_id, token);
       }
 

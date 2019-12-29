@@ -21,8 +21,8 @@ void add_command_to_current_instruction(Command *cmd) {
 int execute_current_instruction() {
   Command *cmd;
   bool do_exit = false;
-  for (cmd = current_instruction.tqh_first; cmd != NULL;
-       cmd = cmd->instruction.tqe_next) {
+  for (cmd = TAILQ_FIRST(&current_instruction); cmd != NULL;
+       cmd = TAILQ_NEXT(cmd, instruction)) {
     // Filters internal commands.
     if (strcmp(cmd->name, "cd") == 0) {
       if (cmd->args[1] != NULL && cmd->args[2]) {
@@ -57,8 +57,8 @@ int execute_current_instruction() {
 
 void reset_current_instruction() {
   Command *cmd;
-  while (current_instruction.tqh_first != NULL) {
-    cmd = current_instruction.tqh_first;
+  while (TAILQ_FIRST(&current_instruction) != NULL) {
+    cmd = TAILQ_FIRST(&current_instruction);
     TAILQ_REMOVE(&current_instruction, cmd, instruction);
     destroy_command(cmd);
   }
