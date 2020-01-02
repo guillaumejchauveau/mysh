@@ -45,9 +45,6 @@ int execute_current_instruction() {
   int cmd_status = 0;
   while (wait(&cmd_status) != -1) {
   }
-  if (errno != ECHILD) {
-    error(-1, errno, "wait failed");
-  }
   if (do_exit) {
     exit_shell(cmd_status);
   }

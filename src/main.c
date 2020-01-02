@@ -14,7 +14,7 @@
 #include "internal_commands.h"
 #include "utils.h"
 
-bool prompting = false;
+static bool prompting = false;
 
 void sigint_handler() {
   // Resets readline's input if it is currently prompting the user.
@@ -24,7 +24,7 @@ void sigint_handler() {
     rl_replace_line("", 0);
     rl_redisplay();
   } else {
-    m_print("Killed by signal 2.");
+    m_print("Killed by signal 2.\n");
   }
 }
 
@@ -75,12 +75,6 @@ int main(int argc, char **argv) {
   init_current_instruction();
   init_ped_registry();
 
-  struct sigaction sa;
-  sa.sa_handler = sigint_handler;
-  sigemptyset(&sa.sa_mask);
-  sa.sa_flags = 0;
-  sigaction(SIGINT, &sa, NULL);
-
   int status = 0, line_id = 1;
   ssize_t bytes_read;
   size_t script_buffer_length = 100;
@@ -111,8 +105,18 @@ int main(int argc, char **argv) {
 
   char *prompt = NULL;
   int fd;
+  struct sigaction sa;
+  sa.sa_handler = sigint_handler;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+  sa.sa_restorer = NULL;
+
   switch (execution_mode) {
   case MODE_INTERACTIVE:
+    if (sigaction(SIGINT, &sa, NULL) < 0) {
+      error(-1, errno, "sigaction");
+    }
+
     prompt = generate_prompt();
     prompting = true;
     while ((script = readline(prompt))) {
